@@ -1,0 +1,3 @@
+#!/bin/sh
+/installed/directory/crawl_openvpn_status.py -s your_vpn_1
+/installed/directory/crawl_openvpn_status.py -s your_vpn_2
