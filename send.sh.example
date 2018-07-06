@@ -1,0 +1,3 @@
+#!/bin/sh
+/installed/directory/monthly_report.py -m prev -s your_vpn_1
+/installed/directory/monthly_report.py -m prev -s your_vpn_2
