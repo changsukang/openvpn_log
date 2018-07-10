@@ -82,7 +82,7 @@ def store_to_db(refined, table):
         conn.commit()
         conn.close()
     except Exception as e:
-        logger.error('unable to store data:\n' + status)
+        logger.error('unable to store data:\n' + str(refined))
         logger.error(e)
     return
 
