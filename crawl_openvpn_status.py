@@ -59,27 +59,32 @@ def is_record(cur, table, name, info):
     return True if cur.fetchone()[0] > 0 else False
 
 def store_to_db(refined, table):
-    conn = psycopg2.connect(
-        "host=" + db_info['host'] + " " +
-        "dbname=" + db_info['dbname'] + " " +
-        "user=" + db_info['user'] + " " +
-        "password=" + db_info['password']
-        )
-    cur = conn.cursor()
-    for name, info in refined.items():
-        if name == 'UNDEF': 
-            logger.warning('unauthorized access: ' + name + ' ' + str(info))
-            continue
-        if not info.get('intrn_ip'):
-            logger.warning('no internal IP: ' + name + ' ' + str(info))
-            continue
-        if is_record(cur, table, name, info):
-            update_record(cur, table, name, info)
-        else: 
-            insert_record(cur, table, name, info)
-    cur.close()
-    conn.commit()
-    conn.close()
+    try:
+        conn = psycopg2.connect(
+            "host=" + db_info['host'] + " " +
+            "dbname=" + db_info['dbname'] + " " +
+            "user=" + db_info['user'] + " " +
+            "password=" + db_info['password']
+            )
+        cur = conn.cursor()
+        for name, info in refined.items():
+            if name == 'UNDEF': 
+                logger.warning('unauthorized access: ' + name + ' ' + str(info))
+                continue
+            if not info.get('intrn_ip'):
+                logger.warning('no internal IP: ' + name + ' ' + str(info))
+                continue
+            if is_record(cur, table, name, info):
+                update_record(cur, table, name, info)
+            else: 
+                insert_record(cur, table, name, info)
+        cur.close()
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error('unable to store data:\n' + status)
+        logger.error(e)
+    return
 
 def refine(status):
     try:
