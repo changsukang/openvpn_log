@@ -11,6 +11,7 @@ from shared import get_table
 from shared import load_env
 
 socket_buffer = 512
+socket_timeout = 10.0
 
 def insert_record(cur, table, name, info):
     sql = \
@@ -127,6 +128,7 @@ def crawl_status(vpn):
     status = None
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(socket_timeout)
         s.connect((vpn_info[vpn]['host'], vpn_info[vpn]['port']))
         status = s.recv(socket_buffer).decode('utf-8') # introduction message
         s.sendall(b'status\n')
