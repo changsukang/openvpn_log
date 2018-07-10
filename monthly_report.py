@@ -20,7 +20,7 @@ def get_records(today, vpn, month):
     (start_date, end_date,) = get_dates_for_sql(today, month)
     sql = \
         "select name, extrn_ipport, intrn_ip, conn_since, " + \
-        "last_refresh, rx_bytes, tx_bytes, ovpn_host " + \
+        "last_refresh, rx_bytes, tx_bytes " + \
         "from " + get_table(vpn) + " where " + \
         "conn_since >= '" + start_date + "' and " + \
         "conn_since < '" + end_date + "' " + \
@@ -74,8 +74,7 @@ def write_report(output, today, vpn, month):
 
 def send_mail(output, vpn, month):
     subject = '[' + vpn + '] OpenVPN Usage Report'
-    comma_space = ', '
-    recipients = comma_space.join(email_recipients[office_location])
+    recipients = vpn_info[vpn]['email']
     body = MIMEText('See attached.', 'plain')
     with open(output, 'r') as f:
         attachment = MIMEText(f.read(), 'plain')
@@ -117,7 +116,7 @@ if __name__ == '__main__':
     db_info, vpn_info = load_env(base_dir + '/env.yaml')
     parser = argparse.ArgumentParser(description='send a monthly report')
     parser.add_argument('-s', nargs=1, required=True, 
-                        choices=list(vpn_info.keys())
+                        choices=list(vpn_info.keys()), 
                         help='choose a vpn server')
     parser.add_argument('-m', nargs=1, choices=['this', 'prev'],
                         required=False, default='this', 
