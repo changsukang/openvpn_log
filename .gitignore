@@ -1,0 +1,6 @@
+env.yaml
+run.sh
+send.sh
+logs/
+reports/
+*~
