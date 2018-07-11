@@ -37,5 +37,20 @@ def get_dates_for_sql(today, debug=False):
         end_date = get_first_day(today, "next")
     return (start_date, end_date,)
 
+def get_user_at_host():
+    import getpass, platform
+    return getpass.getuser() + '@' + platform.node()
+
+def send_error(subject, email, e):
+    import smtplib
+    from email.mime.text import MIMEText
+    msg = MIMEText(str(e))
+    msg['Subject'] = subject
+    msg['From'] = get_user_at_host()
+    msg['To'] = email
+    with smtplib.SMTP('localhost') as s:
+        s.send_message(msg)
+    return
+
 def get_table(vpn):
     return vpn + '_log'

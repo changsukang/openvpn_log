@@ -18,6 +18,8 @@ from shared import load_env
 from shared import get_first_day
 from shared import get_dates_for_sql
 from shared import get_table
+from shared import get_user_at_host
+from shared import send_error
 
 def get_records(today, vpn, month):
     (start_date, end_date,) = get_dates_for_sql(today, month)
@@ -28,6 +30,7 @@ def get_records(today, vpn, month):
         "conn_since >= '" + start_date + "' and " + \
         "conn_since < '" + end_date + "' " + \
         "order by conn_since asc"
+
     try:
         logger.info(sql)
         records = subprocess.check_output(
@@ -40,6 +43,7 @@ def get_records(today, vpn, month):
     except Exception as e:
         logger.error('unable to get full records for ' + vpn)
         logger.error(e)
+        raise Exception(e)
     return records
 
 def get_summary(today, vpn, month):
@@ -53,6 +57,7 @@ def get_summary(today, vpn, month):
         "conn_since >= '" + start_date + "' and " + \
         "conn_since < '" + end_date + "' " + \
         "group by name order by name asc"
+
     try:
         logger.info(sql)
         summary = subprocess.check_output(
@@ -65,6 +70,7 @@ def get_summary(today, vpn, month):
     except Exception as e:
         logger.error('unable to get a summary for ' + vpn)
         logger.error(e)
+        raise Exception(e)
     return summary
 
 def write_report(output, today, vpn, month):
@@ -78,12 +84,14 @@ def write_report(output, today, vpn, month):
         else:
             f.write('Notice: Use \'-f\' option to see full records.\n')
     logger.info('wrote ' + output)
+    return
 
 def send_mail(output, vpn, month):
     try:
         msg = MIMEMultipart()
-        msg['Subject'] = '[' + vpn + '] OpenVPN Usage Report'
-        msg['From'] = admin_info['email']
+        msg['Subject'] = '[' + vpn.upper() + '] OpenVPN Usage Report'
+        import platform
+        msg['From'] = get_user_at_host()
         msg['To'] = vpn_info[vpn]['email']
         msg.preamble = 'You will not see this in a MIME-aware mail reader.\n'
         body = MIMEText('See attached.')
@@ -100,6 +108,8 @@ def send_mail(output, vpn, month):
     except Exception as e:
         logger.error('unable to send \"' + msg['Subject'] + '\" to ' + msg['To'])
         logger.error(e)
+        raise Exception(e)
+    return
     
 def send_report(vpn, month):
     today = date.today()
@@ -107,11 +117,13 @@ def send_report(vpn, month):
     output = base_dir + '/reports/' + vpn + '_' + subject_date + '.txt'
     write_report(output, today, vpn, month)
     send_mail(output, vpn, month)
+    return
 
 if __name__ == '__main__':
     # load working dir and this script's name without its extension
     base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
     name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+    
     # set logging up
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -120,8 +132,11 @@ if __name__ == '__main__':
     formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    # load db info and vpn server info
+    
+    # load env
     db_info, vpn_info, admin_info = load_env(base_dir + '/env.yaml')
+
+    # parse arguments
     parser = argparse.ArgumentParser(description='send a monthly report')
     parser.add_argument('-s', nargs=1, required=True, 
                         choices=list(vpn_info.keys()), 
@@ -132,6 +147,13 @@ if __name__ == '__main__':
     parser.add_argument('-f', action='store_true',
                         required=False, help='with full records')
     args = parser.parse_args()
+    vpn = args.s[0]
+    month = args.m[0]
     is_full = args.f
+
     # fetch records from db to send a report
-    send_report(vpn=args.s[0], month=args.m[0])
+    try:
+        send_report(vpn, month)
+    except Exception as e:
+        subject = '[' + vpn.upper() + '] Error on ' + name
+        send_error(subject, admin_info['email'], e)
