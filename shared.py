@@ -41,10 +41,10 @@ def get_user_at_host():
     import getpass, platform
     return getpass.getuser() + '@' + platform.node()
 
-def send_error(subject, email, e):
+def send_error(subject, email, e, log_file):
     import smtplib
     from email.mime.text import MIMEText
-    msg = MIMEText(str(e))
+    msg = MIMEText(str(e) + '\n\nCheck ' + log_file)
     msg['Subject'] = subject
     msg['From'] = get_user_at_host()
     msg['To'] = email
