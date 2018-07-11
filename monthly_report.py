@@ -72,8 +72,11 @@ def write_report(output, today, vpn, month):
         f.write('SUMMARY (order by name)\n')
         f.write(get_summary(today, vpn, month))
         f.write('\n')
-        f.write('FULL RECORDS (order by conn_since)\n')
-        f.write(get_records(today, vpn, month))
+        if is_full:
+            f.write('FULL RECORDS (order by conn_since)\n')
+            f.write(get_records(today, vpn, month))
+        else:
+            f.write('Notice: Use \'-f\' option to see full records.\n')
     logger.info('wrote ' + output)
 
 def send_mail(output, vpn, month):
@@ -126,6 +129,9 @@ if __name__ == '__main__':
     parser.add_argument('-m', nargs=1, choices=['this', 'prev'],
                         required=False, default='this', 
                         help='set month to issue a report')
+    parser.add_argument('-f', action='store_true',
+                        required=False, help='with full records')
     args = parser.parse_args()
+    is_full = args.f
     # fetch records from db to send a report
     send_report(vpn=args.s[0], month=args.m[0])
