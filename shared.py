@@ -6,7 +6,8 @@ def load_env(env_file):
         env = yaml.load(f)
         db_info = env.get('db', None)
         vpn_info = env.get('vpn', None)
-    return db_info, vpn_info
+        admin_info = env.get('admin', None)
+    return db_info, vpn_info, admin_info
 
 def get_first_day(today, month="this"):
     from datetime import date
