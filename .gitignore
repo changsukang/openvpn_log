@@ -3,4 +3,5 @@ run.sh
 send.sh
 logs/
 reports/
+__pycache__/
 *~
