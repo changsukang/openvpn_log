@@ -104,8 +104,10 @@ def send_report(vpn, month):
     send_mail(output, vpn, month)
 
 if __name__ == '__main__':
+    # load working dir and this script's name without its extension
     base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
     name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+    # set logging up
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     log_file = base_dir + '/logs/' + name + '.log'
@@ -113,6 +115,7 @@ if __name__ == '__main__':
     formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    # load db info and vpn server info
     db_info, vpn_info = load_env(base_dir + '/env.yaml')
     parser = argparse.ArgumentParser(description='send a monthly report')
     parser.add_argument('-s', nargs=1, required=True, 
@@ -122,4 +125,5 @@ if __name__ == '__main__':
                         required=False, default='this', 
                         help='set month to issue a report')
     args = parser.parse_args()
+    # fetch records from db to send a report
     send_report(vpn=args.s[0], month=args.m[0])
