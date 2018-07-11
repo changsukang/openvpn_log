@@ -88,6 +88,38 @@ def store_to_db(refined, table):
         raise Exception(e)
     return
 
+def get_conn_since(line, refined):
+    info = line.split(',')
+    if len(info) == 5:
+        name = info[0]
+        user = refined.get(name, {})
+        user['extrn_ipport'] = info[1]
+        user['rx_bytes'] = info[2]
+        user['tx_bytes'] = info[3]
+        user['conn_since'] = info[4]
+    else: # to support Common Name (CN) complying to the RFC 2253
+        name = info[0] + ',' + info[1]
+        user = refined.get(name, {})
+        user['extrn_ipport'] = info[2]
+        user['rx_bytes'] = info[3]
+        user['tx_bytes'] = info[4]
+        user['conn_since'] = info[5]
+    return name, user
+
+def get_last_ref(line, refined):
+    info = line.split(',')
+    if len(info) == 4:
+        name = info[1]
+        user = refined[name]
+        user['intrn_ip'] = info[0]
+        user['last_refresh'] = info[3]
+    else: # to support Common Name (CN) complying to the RFC 2253
+        name = info[1] + ',' + info[2]
+        user = refined[name]
+        user['intrn_ip'] = info[0]
+        user['last_refresh'] = info[4]
+    return name, user
+
 def refine(status):
     try:
         refined = {}
@@ -104,34 +136,11 @@ def refine(status):
                 is_last_ref = False
             else:
                 if is_connected_since:
-                    info = line.split(',')
-                    # to support Common Name (CN) complying to the RFC 2253
-                    if len(info) == 5:
-                        user = refined.setdefault(info[0], {})
-                        user['extrn_ipport'] = info[1]
-                        user['rx_bytes'] = info[2]
-                        user['tx_bytes'] = info[3]
-                        user['conn_since'] = info[4]
-                        refined[info[0]] = user
-                    else: # len(info) == 6
-                        name = info[0] + ',' + info[1]
-                        user = refined.setdefault(name, {})
-                        user['extrn_ipport'] = info[2]
-                        user['rx_bytes'] = info[3]
-                        user['tx_bytes'] = info[4]
-                        user['conn_since'] = info[5]
-                        refined[name] = user
+                    name, user = get_conn_since(line, refined)
+                    refined[name] = user
                 if is_last_ref: 
-                    info = line.split(',')
-                    if len(info) == 4:
-                        user = refined.get(info[1])
-                        user['intrn_ip'] = info[0]
-                        user['last_refresh'] = info[3]
-                    else: # len(info) == 5
-                        name = info[1] + ',' + info[2]
-                        user = refined.get(name)
-                        user['intrn_ip'] = info[0]
-                        user['last_refresh'] = info[4]
+                    name, user = get_last_ref(line, refined)
+                    refined[name] = user
     except Exception as e:
         logger.error('unable to process data:\n' + status)
         logger.error(e)
