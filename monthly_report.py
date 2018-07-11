@@ -1,15 +1,18 @@
 #!/usr/bin/python3
 import sys, os
 import argparse
+
 import subprocess
 from subprocess import Popen, PIPE
-from datetime import date
-
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText    
 
 import logging
 from logging.handlers import RotatingFileHandler
+
+from datetime import date
+
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from shared import load_env
 from shared import get_first_day
@@ -41,6 +44,7 @@ def get_records(today, vpn, month):
 
 def get_summary(today, vpn, month):
     (start_date, end_date,) = get_dates_for_sql(today, month)
+    summary = ''
     sql = \
         "select name, count(name) as access, " + \
         "to_char(sum(rx_bytes)/1024/1024, '99,999.99\" MB\"') as rx, " + \
@@ -73,27 +77,25 @@ def write_report(output, today, vpn, month):
     logger.info('wrote ' + output)
 
 def send_mail(output, vpn, month):
-    subject = '[' + vpn + '] OpenVPN Usage Report'
-    recipients = vpn_info[vpn]['email']
-    body = MIMEText('See attached.', 'plain')
-    with open(output, 'r') as f:
-        attachment = MIMEText(f.read(), 'plain')
-    attachment.add_header('Content-Disposition', 
-                          'attachment', 
-                          filename=os.path.basename(output))
-    msg = MIMEMultipart()
-    msg['Subject'] = subject
-    msg['To'] = recipients
-    msg.attach(body)
-    msg.attach(attachment)
     try:
-        p = Popen(['/usr/sbin/sendmail', '-t', '-oi'], 
-                  stdin=PIPE, 
-                  universal_newlines=True)
-        p.communicate(msg.as_string())
-        logger.info('sent \"' + subject + '\" to ' + recipients)
+        msg = MIMEMultipart()
+        msg['Subject'] = '[' + vpn + '] OpenVPN Usage Report'
+        msg['From'] = admin_info['email']
+        msg['To'] = vpn_info[vpn]['email']
+        msg.preamble = 'You will not see this in a MIME-aware mail reader.\n'
+        body = MIMEText('See attached.')
+        with open(output, 'r') as f:
+            attachment = MIMEText(f.read())
+        attachment.add_header('Content-Disposition', 
+                              'attachment', 
+                              filename=os.path.basename(output))
+        msg.attach(body)
+        msg.attach(attachment)
+        with smtplib.SMTP('localhost') as s:
+            s.send_message(msg)
+        logger.info('sent \"' + msg['Subject'] + '\" to ' + msg['To'])
     except Exception as e:
-        logger.error('unable to send \"' + subject + '\" to ' + recipients)
+        logger.error('unable to send \"' + msg['Subject'] + '\" to ' + msg['To'])
         logger.error(e)
     
 def send_report(vpn, month):
@@ -116,7 +118,7 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     # load db info and vpn server info
-    db_info, vpn_info = load_env(base_dir + '/env.yaml')
+    db_info, vpn_info, admin_info = load_env(base_dir + '/env.yaml')
     parser = argparse.ArgumentParser(description='send a monthly report')
     parser.add_argument('-s', nargs=1, required=True, 
                         choices=list(vpn_info.keys()), 
