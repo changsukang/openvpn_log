@@ -35,7 +35,7 @@ def get_dates_for_sql(today, debug=False):
     else:
         start_date = get_first_day(today, "this")
         end_date = get_first_day(today, "next")
-    return (start_date, end_date,)
+    return start_date, end_date
 
 def get_user_at_host():
     import getpass, platform

@@ -22,7 +22,7 @@ from shared import get_user_at_host
 from shared import send_error
 
 def get_records(today, vpn, month):
-    (start_date, end_date,) = get_dates_for_sql(today, month)
+    start_date, end_date = get_dates_for_sql(today, month)
     sql = \
         "select name, extrn_ipport, intrn_ip, conn_since, " + \
         "last_refresh, rx_bytes, tx_bytes " + \
