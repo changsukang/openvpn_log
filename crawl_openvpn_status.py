@@ -173,7 +173,7 @@ if __name__ == '__main__':
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     # load db info and vpn server info
-    db_info, vpn_info = load_env(base_dir + '/env.yaml')
+    db_info, vpn_info, admin_info = load_env(base_dir + '/env.yaml')
     # pase arguments to select which vpn to access
     parser = argparse.ArgumentParser(description='parse logs to store')
     parser.add_argument('-s', nargs=1, required=True, 
