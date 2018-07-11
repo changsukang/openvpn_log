@@ -9,6 +9,7 @@ from logging.handlers import RotatingFileHandler
 
 from shared import get_table
 from shared import load_env
+from shared import send_error
 
 socket_buffer = 512
 socket_timeout = 10.0
@@ -84,6 +85,7 @@ def store_to_db(refined, table):
     except Exception as e:
         logger.error('unable to store data:\n' + str(refined))
         logger.error(e)
+        raise Exception(e)
     return
 
 def refine(status):
@@ -133,6 +135,7 @@ def refine(status):
     except Exception as e:
         logger.error('unable to process data:\n' + status)
         logger.error(e)
+        raise Exception(e)
     return refined
 
 def recv_all(s):
@@ -158,12 +161,14 @@ def crawl_status(vpn):
     except Exception as e:
         logger.error('unable to get status from ' + vpn)
         logger.error(e)
+        raise Exception(e)
     return status
 
 if __name__ == '__main__':
     # load working dir and this script's name without its extension
     base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
     name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+
     # set logging up
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -172,8 +177,10 @@ if __name__ == '__main__':
     formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    # load db info and vpn server info
+
+    # load env
     db_info, vpn_info, admin_info = load_env(base_dir + '/env.yaml')
+
     # pase arguments to select which vpn to access
     parser = argparse.ArgumentParser(description='parse logs to store')
     parser.add_argument('-s', nargs=1, required=True, 
@@ -181,8 +188,13 @@ if __name__ == '__main__':
                         help='choose a vpn server')
     args = parser.parse_args()
     vpn = args.s[0]
+
     # crawl, parse and store
-    status = crawl_status(vpn)
-    refined = refine(status)
-    table = get_table(vpn)
-    store_to_db(refined, table)
+    try:
+        status = crawl_status(vpn)
+        refined = refine(status)
+        table = get_table(vpn)
+        store_to_db(refined, table)
+    except Exception as e:
+        subject = '[' + vpn.upper() + '] Error on ' + name
+        send_error(subject, admin_info['email'], e, log_file)
