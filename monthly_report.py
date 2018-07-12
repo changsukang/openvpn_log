@@ -156,4 +156,4 @@ if __name__ == '__main__':
         send_report(vpn, month)
     except Exception as e:
         subject = '[' + vpn.upper() + '] Error on ' + name
-        send_error(subject, admin_info['email'], e)
+        send_error(subject, admin_info['email'], e, log_file)
