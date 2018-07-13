@@ -9,17 +9,17 @@ def load_env(env_file):
         admin_info = env.get('admin', None)
     return db_info, vpn_info, admin_info
 
-def get_first_day(today, month="this"):
+def get_first_day(today, month='this'):
     from datetime import date
     first = today.replace(day=1)
-    if month == "prev":
+    if month == 'prev':
         try:
             first = first.replace(month=first.month-1)
         except ValueError:
             if first.month == 1:
                 first = first.replace(month=12)
                 first = first.replace(year=first.year-1)
-    elif month == "next":
+    elif month == 'next':
         try:
             first = first.replace(month=first.month+1)
         except ValueError:
@@ -30,11 +30,11 @@ def get_first_day(today, month="this"):
 
 def get_dates_for_sql(today, debug=False):
     if not debug:
-        start_date = get_first_day(today, "prev")
-        end_date = get_first_day(today, "this")
+        start_date = get_first_day(today, 'prev')
+        end_date = get_first_day(today, 'this')
     else:
-        start_date = get_first_day(today, "this")
-        end_date = get_first_day(today, "next")
+        start_date = get_first_day(today, 'this')
+        end_date = get_first_day(today, 'next')
     return start_date, end_date
 
 def get_user_at_host():

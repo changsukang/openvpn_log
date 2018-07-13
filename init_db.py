@@ -36,10 +36,10 @@ def create_table(cur, table):
 
 def init_db():
     conn = psycopg2.connect(
-        "host=" + db_info["host"] + " " +
-        "dbname=" + db_info["dbname"] + " " +
-        "user=" + db_info["user"] + " " +
-        "password=" + db_info["password"]
+        'host=' + db_info['host'] + ' ' +
+        'dbname=' + db_info['dbname'] + ' ' +
+        'user=' + db_info['user'] + ' ' +
+        'password=' + db_info['password']
         )
     cur = conn.cursor()
     for server in list(vpn_info.keys()):
