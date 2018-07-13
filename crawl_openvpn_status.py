@@ -61,27 +61,26 @@ def is_record(cur, table, name, info):
 
 def store_to_db(refined, table):
     try:
-        conn = psycopg2.connect(
+        with psycopg2.connect(
             "host=" + db_info['host'] + " " +
             "dbname=" + db_info['dbname'] + " " +
             "user=" + db_info['user'] + " " +
             "password=" + db_info['password']
-            )
-        cur = conn.cursor()
-        for name, info in refined.items():
-            if name == 'UNDEF': 
-                logger.warning('unauthorized access: ' + name + ' ' + str(info))
-                continue
-            if not info.get('intrn_ip'):
-                logger.warning('no internal IP: ' + name + ' ' + str(info))
-                continue
-            if is_record(cur, table, name, info):
-                update_record(cur, table, name, info)
-            else: 
-                insert_record(cur, table, name, info)
-        cur.close()
-        conn.commit()
-        conn.close()
+            ) as conn:
+            cur = conn.cursor()
+            for name, info in refined.items():
+                if name == 'UNDEF': 
+                    logger.warning('unauthorized access: ' + name + ' ' + str(info))
+                    continue
+                if not info.get('intrn_ip'):
+                    logger.warning('no internal IP: ' + name + ' ' + str(info))
+                    continue
+                if is_record(cur, table, name, info):
+                    update_record(cur, table, name, info)
+                else: 
+                    insert_record(cur, table, name, info)
+            cur.close()
+            conn.commit()
     except Exception as e:
         logger.error('unable to store data:\n' + str(refined))
         logger.error(e)
@@ -153,6 +152,8 @@ def recv_all(s):
     while True:
         received = s.recv(socket_buffer)
         status += received
+        if received == b'':
+            logger.debug('no data received via socket')
         if b'\r\nEND\r\n' in received:
             break
     return status
@@ -160,13 +161,13 @@ def recv_all(s):
 def crawl_status(vpn):
     status = None
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(socket_timeout)
-        s.connect((vpn_info[vpn]['host'], vpn_info[vpn]['port']))
-        status = s.recv(socket_buffer).decode('utf-8') # introduction message
-        s.sendall(b'status\n')
-        status = recv_all(s).decode('utf-8')
-        s.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(socket_timeout)
+            s.connect((vpn_info[vpn]['host'], vpn_info[vpn]['port']))
+            status = s.recv(socket_buffer).decode('utf-8') # introduction message
+            s.sendall(b'status\n')
+            status = recv_all(s).decode('utf-8')
     except Exception as e:
         logger.error('unable to get status from ' + vpn)
         logger.error(e)
