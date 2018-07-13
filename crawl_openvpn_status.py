@@ -186,7 +186,7 @@ if __name__ == '__main__':
     logger.addHandler(handler)
 
     # load env
-    db_info, vpn_info, admin_info = load_env(base_dir + '/env.yaml')
+    db_info, vpn_info, admin_info, smtp_info = load_env(base_dir + '/env.yaml')
 
     # pase arguments to select which vpn to access
     parser = argparse.ArgumentParser(description='parse logs to store')
@@ -204,4 +204,4 @@ if __name__ == '__main__':
         store_to_db(refined, table)
     except Exception as e:
         subject = '[' + vpn.upper() + '] Error on ' + name
-        send_error(subject, admin_info['email'], e, log_file)
+        send_error(smtp_info, subject, admin_info['email'], e, log_file)

@@ -102,7 +102,7 @@ def send_mail(output, vpn, month):
                               filename=os.path.basename(output))
         msg.attach(body)
         msg.attach(attachment)
-        with smtplib.SMTP('localhost') as s:
+        with smtplib.SMTP(smtp_info['server']) as s:
             s.send_message(msg)
         logger.info('sent \"' + msg['Subject'] + '\" to ' + msg['To'])
     except Exception as e:
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     logger.addHandler(handler)
     
     # load env
-    db_info, vpn_info, admin_info = load_env(base_dir + '/env.yaml')
+    db_info, vpn_info, admin_info, smtp_info = load_env(base_dir + '/env.yaml')
 
     # parse arguments
     parser = argparse.ArgumentParser(description='send a monthly report')
@@ -156,4 +156,4 @@ if __name__ == '__main__':
         send_report(vpn, month)
     except Exception as e:
         subject = '[' + vpn.upper() + '] Error on ' + name
-        send_error(subject, admin_info['email'], e, log_file)
+        send_error(smtp_info, subject, admin_info['email'], e, log_file)

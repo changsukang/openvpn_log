@@ -7,7 +7,8 @@ def load_env(env_file):
         db_info = env.get('db', None)
         vpn_info = env.get('vpn', None)
         admin_info = env.get('admin', None)
-    return db_info, vpn_info, admin_info
+        smtp_info = env.get('smtp', None)
+    return db_info, vpn_info, admin_info, smtp_info
 
 def get_first_day(today, month='this'):
     from datetime import date
@@ -41,14 +42,14 @@ def get_user_at_host():
     import getpass, platform
     return getpass.getuser() + '@' + platform.node()
 
-def send_error(subject, email, e, log_file):
+def send_error(smtp_info, subject, email, e, log_file):
     import smtplib
     from email.mime.text import MIMEText
     msg = MIMEText(str(e) + '\n\nCheck ' + log_file)
     msg['Subject'] = subject
     msg['From'] = get_user_at_host()
     msg['To'] = email
-    with smtplib.SMTP('localhost') as s:
+    with smtplib.SMTP(smtp_info['server']) as s:
         s.send_message(msg)
     return
 
