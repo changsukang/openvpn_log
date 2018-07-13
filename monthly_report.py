@@ -47,7 +47,7 @@ def get_records(today, vpn, month):
     return records
 
 def get_summary(today, vpn, month):
-    (start_date, end_date,) = get_dates_for_sql(today, month)
+    start_date, end_date = get_dates_for_sql(today, month)
     summary = ''
     sql = \
         "select name, count(name) as access, " + \
