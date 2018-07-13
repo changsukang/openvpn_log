@@ -11,7 +11,7 @@ from shared import get_table
 from shared import load_env
 from shared import send_error
 
-socket_buffer = 512
+socket_buffer = 1024
 socket_timeout = 10.0
 
 def insert_record(cur, table, name, info):
@@ -152,8 +152,6 @@ def recv_all(s):
     while True:
         received = s.recv(socket_buffer)
         status += received
-        if received == b'':
-            logger.debug('no data received via socket')
         if b'\r\nEND\r\n' in received:
             break
     return status
@@ -165,7 +163,6 @@ def crawl_status(vpn):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(socket_timeout)
             s.connect((vpn_info[vpn]['host'], vpn_info[vpn]['port']))
-            status = s.recv(socket_buffer).decode('utf-8') # introduction message
             s.sendall(b'status\n')
             status = recv_all(s).decode('utf-8')
     except Exception as e:
