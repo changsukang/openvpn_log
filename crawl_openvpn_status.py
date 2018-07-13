@@ -204,4 +204,6 @@ if __name__ == '__main__':
         store_to_db(refined, table)
     except Exception as e:
         subject = '[' + vpn.upper() + '] Error on ' + name
+        logger.error(subject)
+        logger.error(e)
         send_error(smtp_info, subject, admin_info['email'], e, log_file)

@@ -10,7 +10,6 @@ from logging.handlers import RotatingFileHandler
 
 from datetime import date
 
-import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -19,6 +18,7 @@ from shared import get_first_day
 from shared import get_dates_for_sql
 from shared import get_table
 from shared import get_user_at_host
+from shared import send_via_smtp
 from shared import send_error
 
 def get_records(today, vpn, month):
@@ -90,7 +90,6 @@ def send_mail(output, vpn, month):
     try:
         msg = MIMEMultipart()
         msg['Subject'] = '[' + vpn.upper() + '] OpenVPN Usage Report'
-        import platform
         msg['From'] = get_user_at_host()
         msg['To'] = vpn_info[vpn]['email']
         msg.preamble = 'You will not see this in a MIME-aware mail reader.\n'
@@ -102,8 +101,7 @@ def send_mail(output, vpn, month):
                               filename=os.path.basename(output))
         msg.attach(body)
         msg.attach(attachment)
-        with smtplib.SMTP(smtp_info['server']) as s:
-            s.send_message(msg)
+        send_via_smtp(smtp_info, msg)
         logger.info('sent \"' + msg['Subject'] + '\" to ' + msg['To'])
     except Exception as e:
         logger.error('unable to send \"' + msg['Subject'] + '\" to ' + msg['To'])
@@ -156,4 +154,6 @@ if __name__ == '__main__':
         send_report(vpn, month)
     except Exception as e:
         subject = '[' + vpn.upper() + '] Error on ' + name
+        logger.error(subject)
+        logger.error(e)
         send_error(smtp_info, subject, admin_info['email'], e, log_file)

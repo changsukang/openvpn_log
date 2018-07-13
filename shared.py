@@ -43,13 +43,24 @@ def get_user_at_host():
     return getpass.getuser() + '@' + platform.node()
 
 def send_error(smtp_info, subject, email, e, log_file):
-    import smtplib
     from email.mime.text import MIMEText
     msg = MIMEText(str(e) + '\n\nCheck ' + log_file)
     msg['Subject'] = subject
     msg['From'] = get_user_at_host()
     msg['To'] = email
-    with smtplib.SMTP(smtp_info['server']) as s:
+    send_via_smtp(smtp_info, msg)
+    return
+
+def send_via_smtp(smtp_info, msg):
+    if not smtp_info: smtp_info = dict()
+    server = smtp_info.get('server', 'localhost')
+    port = smtp_info.get('port', 25)
+    user = smtp_info.get('user', None)
+    password = smtp_info.get('password', None)
+
+    import smtplib
+    with smtplib.SMTP(server, port) as s:
+        if user and password: s.login(user, password)
         s.send_message(msg)
     return
 
