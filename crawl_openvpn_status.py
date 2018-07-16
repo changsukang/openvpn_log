@@ -13,6 +13,7 @@ from shared import send_error
 
 socket_buffer = 1024
 socket_timeout = 10.0
+socket_maxtry = 2
 
 def insert_record(cur, table, name, info):
     sql = \
@@ -158,17 +159,21 @@ def recv_all(s):
         
 def crawl_status(vpn):
     status = None
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(socket_timeout)
-            s.connect((vpn_info[vpn]['host'], vpn_info[vpn]['port']))
-            s.sendall(b'status\n')
-            status = recv_all(s).decode('utf-8')
-    except Exception as e:
-        logger.error('unable to get status from ' + vpn)
-        logger.error(e)
-        raise Exception(e)
+    err_cnt = 0
+    while True:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(socket_timeout)
+                s.connect((vpn_info[vpn]['host'], vpn_info[vpn]['port']))
+                s.sendall(b'status\n')
+                status = recv_all(s).decode('utf-8')
+                break
+        except Exception as e:
+            logger.error('unable to get status from ' + vpn)
+            logger.error(e)
+            err_cnt += 1
+            if err_cnt > socket_maxtry: raise Exception(e)
     return status
 
 if __name__ == '__main__':
