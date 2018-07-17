@@ -13,7 +13,8 @@ def load_env(env_file):
 def get_first_day(today, month='this'):
     from datetime import date
     first = today.replace(day=1)
-    if month == 'prev':
+    # unless month is 'this', update 'first'
+    if month == 'last':
         try:
             first = first.replace(month=first.month-1)
         except ValueError:
@@ -29,13 +30,16 @@ def get_first_day(today, month='this'):
                 first = first.replace(year=first.year+1)
     return date.strftime(first, "%Y-%m-%d")
 
-def get_dates_for_sql(today, debug=False):
-    if not debug:
-        start_date = get_first_day(today, 'prev')
+def get_dates_for_sql(today, month='this'):
+    '''return the first days for two consecutive months'''
+    if month == 'last':
+        start_date = get_first_day(today, 'last')
         end_date = get_first_day(today, 'this')
-    else:
+    elif month == 'this':
         start_date = get_first_day(today, 'this')
         end_date = get_first_day(today, 'next')
+    else:
+        raise Exception("The 2nd argument is one of 'last' and 'this'")
     return start_date, end_date
 
 def get_user_at_host():
