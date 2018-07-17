@@ -139,8 +139,8 @@ if __name__ == '__main__':
     parser.add_argument('-s', nargs=1, required=True, 
                         choices=list(vpn_info.keys()), 
                         help='choose a vpn server')
-    parser.add_argument('-m', nargs=1, choices=['this', 'last'],
-                        required=False, default='this', 
+    parser.add_argument('-m', nargs=1, required=True,
+                        choices=['this', 'last'],
                         help='set month to issue a report')
     parser.add_argument('-f', action='store_true',
                         required=False, help='with full records')
@@ -148,6 +148,7 @@ if __name__ == '__main__':
     vpn = args.s[0]
     month = args.m[0]
     is_full = args.f
+
 
     # fetch records from db to send a report
     try:
