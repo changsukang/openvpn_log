@@ -4,8 +4,6 @@ import argparse
 import psycopg2
 import socket
 
-from time import sleep
-
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -14,7 +12,7 @@ from shared import load_env
 from shared import send_error
 
 socket_buffer = 1024
-socket_timeout = 5.0
+socket_timeout = 10.0
 socket_maxtry = 2
 
 def insert_record(cur, table, name, info):
@@ -175,10 +173,7 @@ def crawl_status(vpn):
             logger.error('unable to get status from ' + vpn)
             logger.error(e)
             err_cnt += 1
-            if err_cnt > socket_maxtry: 
-                raise Exception(e)
-            else:
-                sleep(1)
+            if err_cnt > socket_maxtry: raise Exception(e)
     return status
 
 if __name__ == '__main__':
