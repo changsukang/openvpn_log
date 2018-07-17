@@ -85,13 +85,13 @@ Please copy send.sh.example to send.sh, and edit it based on your env.yaml.
 /installed/directory/monthly_report.py -f -m last -s your_vpn_1
 /installed/directory/monthly_report.py -f -m last -s your_vpn_2
 ```
-'-s' means the same as being described at 'run.sh.' '-f' decides to attach full logs. It means every records who connected openvpn when with how much traffic for one connection. Without it, your monthly report includes only a summary who connected openvpn how many times with how much traffic for a month. '-m' points for which month the report is built for. If '-m last' is set, the report is for the last month. Otherwise, for this month. You may want to use 'this' to check logs in middle of a month and to use 'last' to issue monthly reports for last month on every first day.
+'-s' means the same as being described at 'run.sh.' '-f' decides to attach full logs. They mean all records: who connected openvpn, when and how much traffic for one connection. Without it, your monthly report includes only a summary: who connected openvpn, how many times and how much traffic for a month. '-m' points for which month the report is built for. If '-m last' is set, the report is for the last month. Otherwise, for this month. You may want to use 'this' to check logs in middle of a month and to use 'last' to issue monthly reports for last month on every first day.
 
 ## make logs/ directory
 $ mkdir /installed/directory/logs/
 
 ## init.db
-After setting env.yaml up especially for 'db', please run init.db to generate tables. Each vpn will have a table whose name is vpn_keyword + '\_log.' For example, the table name for 'your_vpn_1' will be 'your_vpn_1_log.'
+After setting env.yaml up especially for 'db', please run init.db to generate tables. Each openvpn will have a table whose name is vpn_keyword + '\_log.' For example, the table name for 'your_vpn_1' will be 'your_vpn_1_log.'
 
 ## crontab
 It's time to set cron up to run 'run.sh' and 'send.sh.'
