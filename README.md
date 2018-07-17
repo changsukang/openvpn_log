@@ -22,7 +22,7 @@ port service_port
 [Management Interface](https://openvpn.net/index.php/open-source/documentation/miscellaneous/79-management-interface.html) - OpenVPN Management Interface Notes
 
 ## Python3
-Because this uses PostgreSQL to store information, python3 on your system should have "psycopg2." For more detailed information on how to install it, you can check here:
+Because this uses PostgreSQL, python3 on your system should have "psycopg2." For more details on how to install it, you can check here:
 
 [psycopg2](http://initd.org/psycopg/docs/install.html) - How to install psycopg2
 
@@ -70,8 +70,35 @@ smtp:
 'smtp' is to define a smtp server to use send any emails. If nothing sets, localhost with port 25 and without any authentication is used as default. Unfortunately, SSL/TLS are not supported yet.
 
 ## run.sh
+Please copy run.sh.example to run.sh, and edit it based on your env.yaml.
+```
+#!/bin/sh
+/installed/directory/crawl_openvpn_status.py -s your_vpn_1
+/installed/directory/crawl_openvpn_status.py -s your_vpn_2
+```
+'-s' is used to point the unique keyword you set up to define your openvpn.
 
 ## send.sh
+Please copy send.sh.example to send.sh, and edit it based on your env.yaml.
+```
+#!/bin/sh
+/installed/directory/monthly_report.py -f -m last -s your_vpn_1
+/installed/directory/monthly_report.py -f -m last -s your_vpn_2
+```
+'-s' means the same as being described at 'run.sh.' '-f' decides to attach full logs. It means every records who connected openvpn when with how much traffic for one connection. Without it, your monthly report includes only a summary who connected openvpn how many times with how much traffic for a month. '-m' points for which month the report is built for. If '-m last' is set, the report is for the last month. Otherwise, for this month. You may want to use 'this' to check logs in middle of a month and to use 'last' to issue monthly reports for last month on every first day.
+
+## make logs/ directory
+$ mkdir /installed/directory/logs/
+
+## init.db
+After setting env.yaml up especially for 'db', please run init.db to generate tables. Each vpn will have a table whose name is vpn_keyword + '\_log.' For example, the table name for 'your_vpn_1' will be 'your_vpn_1_log.'
 
 ## crontab
-
+It's time to set cron up to run 'run.sh' and 'send.sh.'
+```
+# crawls status from openvpn servers
+*/5 * * * * /installed/directory/run.sh >> /installed/directory/logs/run.log 2>&1
+# sends monthly reports
+0 3 1 * * /installed/directory/send.sh >> /installed/directory/logs/send.log 2>&1
+```
+The cron will crawl status every 5 minutes and send monthly reports at 3 am every 1st day.
