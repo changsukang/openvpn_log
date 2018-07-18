@@ -163,7 +163,6 @@ def crawl_status(vpn):
     while True:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.settimeout(socket_timeout)
                 s.connect((vpn_info[vpn]['host'], vpn_info[vpn]['port']))
                 s.sendall(b'status\n')
